@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Joining Checklist Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: candidate portal in the hiring company's brand. Desktop = section rail | task | context panel; collapses by container width, so the same parts rearrange for phones. */
+:root{
+  --brand:#1E4E79; --brand-ink:#FFFFFF; --brand-soft:#E3ECF5; --brand-strong:#163B5C;
+  --bg:#F3F5F8; --surface:#FFFFFF; --surface-2:#EDF0F4; --line:#DCE2E9; --line-2:#C9D2DC;
+  --ink:#15202B; --ink-2:#4A5866; --ink-3:#7A8794;
+  --ok:#1C7A4E; --ok-soft:#DDF1E6; --warn:#9A5B0B; --warn-soft:#FCEED7; --bad:#B4392A; --bad-soft:#FBE3DF; --info:#3A57B3; --info-soft:#E3E9FB;
+  --proto:#2A2F36; --proto-ink:#E9EDF2;
+  --sans:"Albert Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  color-scheme:dark;
+  --brand:#7FB0DF; --brand-ink:#0B1A28; --brand-soft:#1A2C3F; --brand-strong:#A9CBEC;
+  --bg:#0F1318; --surface:#161C23; --surface-2:#1D252E; --line:#29323C; --line-2:#36414D;
+  --ink:#E6EBF0; --ink-2:#A6B1BC; --ink-3:#77838F;
+  --ok:#5CC48F; --ok-soft:#173326; --warn:#E5A94E; --warn-soft:#382A14; --bad:#F08273; --bad-soft:#3A1D19; --info:#94A9F2; --info-soft:#1E2643;
+  --proto:#05070A; --proto-ink:#D9DEE4;
+}}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --brand:#7FB0DF; --brand-ink:#0B1A28; --brand-soft:#1A2C3F; --brand-strong:#A9CBEC;
+  --bg:#0F1318; --surface:#161C23; --surface-2:#1D252E; --line:#29323C; --line-2:#36414D;
+  --ink:#E6EBF0; --ink-2:#A6B1BC; --ink-3:#77838F;
+  --ok:#5CC48F; --ok-soft:#173326; --warn:#E5A94E; --warn-soft:#382A14; --bad:#F08273; --bad-soft:#3A1D19; --info:#94A9F2; --info-soft:#1E2643;
+  --proto:#05070A; --proto-ink:#D9DEE4;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+h1,h2,h3{margin:0;text-wrap:balance;letter-spacing:-.015em}
+p{margin:0}
+.num{font-variant-numeric:tabular-nums}
+
+/* prototype bar (not part of the product) */
+.proto{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:var(--proto);color:var(--proto-ink);font-size:13px}
+.proto-in{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding-block:8px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.proto b{font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:11px;opacity:.75}
+.proto select,.proto button{background:transparent;border:1px solid rgba(255,255,255,.22);color:var(--proto-ink);border-radius:7px;padding:4px 8px;font-size:13px}
+.proto select option{color:#111;background:#fff}
+.proto .grow{flex:1}
+.vt{display:inline-flex;border:1px solid rgba(255,255,255,.22);border-radius:7px;overflow:hidden}
+.vt button{border:0;border-radius:0;padding:4px 10px}
+.vt button[aria-pressed="true"]{background:rgba(255,255,255,.16)}
+@media (max-width:640px){.vt{display:none}}
+
+/* stage */
+.stage{padding-block:24px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.frame{container-type:inline-size;container-name:app;margin-inline:auto;max-width:1240px;background:var(--bg);transition:max-width .25s ease}
+.mobile .frame{max-width:390px;border:1px solid var(--line-2);border-radius:26px;overflow:hidden;box-shadow:0 12px 40px rgba(15,25,35,.12);min-height:760px}
+@media (prefers-reduced-motion:reduce){.frame{transition:none}}
+@media (max-width:640px){.stage{padding:0}.mobile .frame{border:0;border-radius:0;box-shadow:none;max-width:none}}
+
+/* product header */
+.ph{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 20px;background:var(--surface);border-bottom:1px solid var(--line)}
+.logo{display:flex;align-items:center;gap:10px;min-width:0}
+.mark{width:32px;height:32px;border-radius:8px;background:var(--brand);color:var(--brand-ink);display:grid;place-items:center;font-weight:800;font-size:15px;flex:none}
+.logo strong{font-size:15px;font-weight:700;white-space:nowrap}
+.logo span{color:var(--ink-3);font-size:14px;white-space:nowrap;border-left:1px solid var(--line);padding-left:10px}
+.who{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--ink-2)}
+.saved{display:inline-flex;align-items:center;gap:6px}
+.saved::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ok)}
+.av{width:32px;height:32px;border-radius:50%;background:var(--brand-soft);color:var(--brand);display:grid;place-items:center;font-weight:700;font-size:13px;flex:none}
+.pf{padding:14px 20px 22px;color:var(--ink-3);font-size:12.5px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+
+/* grid */
+.layout{display:grid;grid-template-columns:250px minmax(0,1fr) 290px;gap:24px;padding:24px 20px;align-items:start}
+.layout.two{grid-template-columns:minmax(0,1fr) 300px}
+.rail,.aside{display:flex;flex-direction:column;gap:16px;position:sticky;top:60px}
+.col{display:flex;flex-direction:column;gap:20px;min-width:0}
+
+/* primitives */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.pad{padding:18px}
+.eyebrow{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.muted{color:var(--ink-2)}
+.small{font-size:13px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:8px;border:1px solid var(--line-2);background:var(--surface);padding:9px 16px;font-weight:600;font-size:14px;min-height:40px;white-space:nowrap}
+.btn:hover{border-color:var(--ink-3)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.btn.primary:hover{background:var(--brand-strong);border-color:var(--brand-strong)}
+.btn.danger{background:var(--bad);border-color:var(--bad);color:#fff}
+.btn.link{border:0;background:none;padding:0;min-height:0;color:var(--brand);font-weight:600}
+.btn.link:hover{text-decoration:underline}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.sm{min-height:32px;padding:5px 11px;font-size:13px}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;white-space:nowrap;line-height:1.6}
+.chip i{width:6px;height:6px;border-radius:50%;background:currentColor;display:block}
+.s-ok{background:var(--ok-soft);color:var(--ok)}
+.s-warn{background:var(--warn-soft);color:var(--warn)}
+.s-bad{background:var(--bad-soft);color:var(--bad)}
+.s-info{background:var(--info-soft);color:var(--info)}
+.s-mute{background:var(--surface-2);color:var(--ink-2)}
+.s-brand{background:var(--brand-soft);color:var(--brand)}
+.tag{font-size:11.5px;font-weight:600;color:var(--ink-3);border:1px solid var(--line);border-radius:5px;padding:0 6px}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field label{font-size:13px;font-weight:600;color:var(--ink-2)}
+.field .hint{font-size:12.5px;color:var(--ink-3)}
+.input{width:100%;min-width:0;border:1px solid var(--line-2);background:var(--surface);border-radius:8px;padding:9px 12px;min-height:42px;font-size:15px}
+.input:read-only{background:var(--surface-2);color:var(--ink-2)}
+.input.mono{font-family:var(--mono);letter-spacing:.04em}
+.fgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px}
+.fgrid .full{grid-column:1/-1}
+.err{color:var(--bad);font-size:13px;font-weight:500}
+.okline{color:var(--ok);font-size:13px;font-weight:600}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(24px + env(safe-area-inset-bottom,0px));z-index:50;background:var(--ink);color:var(--bg);padding:11px 16px;border-radius:9px;font-weight:600;font-size:14px;width:max-content;max-width:min(calc(100% - 32px),520px);box-shadow:0 10px 30px rgba(0,0,0,.25)}
+
+/* progress + rail nav */
+.prog{display:flex;flex-direction:column;gap:10px}
+.prog-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.prog-top b{font-size:24px;letter-spacing:-.02em}
+.track{height:8px;border-radius:4px;background:var(--surface-2);overflow:hidden;display:flex}
+.track i{display:block;height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--ink-2)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend em{width:8px;height:8px;border-radius:2px;display:inline-block}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav button{display:flex;align-items:center;gap:10px;border:0;background:none;text-align:left;padding:9px 10px;border-radius:8px;font-size:14px;font-weight:500;color:var(--ink-2)}
+.nav button:hover{background:var(--surface-2)}
+.nav button[aria-current="true"]{background:var(--brand-soft);color:var(--ink);font-weight:600}
+.nav .dot{width:18px;height:18px;border-radius:50%;flex:none;display:grid;place-items:center;border:1.5px solid var(--line-2);font-size:10px;font-weight:800;color:var(--surface)}
+.nav .dot.ok{background:var(--ok);border-color:var(--ok)}
+.nav .dot.sub{background:var(--info);border-color:var(--info)}
+.nav .dot.bad{background:var(--bad);border-color:var(--bad)}
+.nav .dot.prog{border-color:var(--brand);background:linear-gradient(90deg,var(--brand) 50%,transparent 50%)}
+.nav .name{flex:1;min-width:0}
+
+/* home */
+.hello h1{font-size:26px}
+.hello p{margin-top:4px}
+.alert{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-radius:var(--r);background:var(--bad-soft);color:var(--ink)}
+.alert .ic{width:22px;height:22px;border-radius:50%;background:var(--bad);color:#fff;display:grid;place-items:center;font-weight:800;font-size:13px;flex:none;margin-top:1px}
+.alert.ok{background:var(--ok-soft)}
+.alert.ok .ic{background:var(--ok)}
+.seclist{display:flex;flex-direction:column}
+.secrow{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:16px;align-items:center;padding:16px 18px;border-top:1px solid var(--line);text-align:left;background:none;border-left:0;border-right:0;border-bottom:0;width:100%}
+.secrow:first-child{border-top:0}
+.secrow:hover{background:var(--surface-2)}
+.secrow h3{font-size:15.5px}
+.secrow .sub{font-size:13px;color:var(--ink-3);margin-top:2px}
+.secrow .due{font-size:13px;color:var(--ink-2);text-align:right;white-space:nowrap}
+.secrow .due.soon{color:var(--warn);font-weight:600}
+.chev{color:var(--ink-3)}
+
+/* context panel */
+.hr{display:flex;flex-direction:column;gap:12px}
+.hr-top{display:flex;gap:12px;align-items:center}
+.hr-top .av{width:46px;height:46px;font-size:16px;background:linear-gradient(140deg,var(--brand-soft),var(--surface-2))}
+.hr-top b{display:block;font-size:15px}
+.contact{display:flex;flex-direction:column;gap:6px;font-size:13.5px}
+.contact div{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.contact span{user-select:all;word-break:break-all}
+.copy{border:0;background:none;color:var(--brand);font-weight:600;font-size:12.5px;padding:2px 0;flex:none}
+.priv{display:flex;flex-direction:column;gap:10px;font-size:13.5px}
+.teams{display:flex;flex-direction:column;gap:8px}
+.team{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;align-items:start}
+.team .tb{width:28px;height:28px;border-radius:7px;background:var(--surface-2);display:grid;place-items:center;font-size:11px;font-weight:800;color:var(--ink-2);grid-row:span 2}
+.team b{font-size:13.5px}
+.team span{font-size:12.5px;color:var(--ink-3)}
+.notseen{font-size:12.5px;color:var(--ink-3);border-top:1px dashed var(--line);padding-top:10px}
+
+/* section page */
+.crumb{font-size:13px;color:var(--ink-3);display:flex;gap:6px;align-items:center}
+.crumb button{border:0;background:none;padding:0;color:var(--brand);font-weight:600;font-size:13px}
+.sec-title{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.sec-title h1{font-size:24px}
+.sec-meta{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--ink-2);margin-top:6px}
+.block-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line)}
+.block-h h2{font-size:15px}
+.docs{display:flex;flex-direction:column}
+.doc{padding:16px 18px;border-top:1px solid var(--line);display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:10px 20px;align-items:start}
+.doc:first-child{border-top:0}
+.doc-name{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px}
+.doc-name b{font-size:15px;font-weight:600}
+.why{font-size:13.5px;color:var(--ink-2);margin-top:3px}
+.seen{font-size:12.5px;color:var(--ink-3);margin-top:5px;display:flex;align-items:center;gap:6px}
+.seen svg{flex:none}
+.slot{display:flex;flex-direction:column;gap:8px}
+.drop{border:1.5px dashed var(--line-2);border-radius:9px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;background:var(--bg);transition:border-color .15s,background .15s}
+.drop.over{border-color:var(--brand);background:var(--brand-soft)}
+.drop .fmt{font-size:12px;color:var(--ink-3)}
+.drop .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}
+.file{border:1px solid var(--line);border-radius:9px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;background:var(--surface)}
+.file-top{display:flex;gap:10px;align-items:center;min-width:0}
+.ficon{width:30px;height:36px;border-radius:5px;background:var(--surface-2);color:var(--ink-2);display:grid;place-items:center;font-size:9.5px;font-weight:800;flex:none;letter-spacing:.03em}
+.fname{min-width:0;flex:1}
+.fname b{display:block;font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fname span{font-size:12px;color:var(--ink-3)}
+.factions{display:flex;gap:14px;flex-wrap:wrap;font-size:13px}
+.bar{height:5px;border-radius:3px;background:var(--surface-2);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--brand);transition:width .12s linear}
+.note{border-radius:8px;padding:9px 11px;font-size:13px}
+.note.bad{background:var(--bad-soft)}
+.note.bad b{color:var(--bad)}
+.note.warn{background:var(--warn-soft)}
+.note.info{background:var(--info-soft)}
+.confirm{display:flex;flex-direction:column;gap:8px;background:var(--bad-soft);border-radius:8px;padding:10px 11px;font-size:13px}
+.later{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap}
+.later .field{flex:1;min-width:140px}
+.multi{display:flex;flex-direction:column;gap:8px}
+.multi .lbl{font-size:12.5px;font-weight:600;color:var(--ink-2)}
+.submitbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 18px;border-top:1px solid var(--line);background:var(--surface-2);border-radius:0 0 var(--r) var(--r)}
+details.ctx{display:none}
+
+/* entry screens */
+.center{display:grid;place-items:center;padding:40px 20px}
+.entry{width:100%;max-width:440px;display:flex;flex-direction:column;gap:18px}
+.otp{font-family:var(--mono);font-size:26px;letter-spacing:.5em;text-align:center;padding-left:.5em}
+.mail{width:100%;max-width:680px;overflow:hidden}
+.mail-h{padding:14px 20px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:3px;font-size:13.5px}
+.mail-h b{font-size:16px}
+.mail-b{padding:26px 28px;display:flex;flex-direction:column;gap:16px;font-size:15px;max-width:600px}
+.mail-brand{display:flex;gap:10px;align-items:center;padding-bottom:16px;border-bottom:3px solid var(--brand)}
+.kv{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.kv div{background:var(--surface);padding:12px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.kv span{font-size:12px;color:var(--ink-3)}
+.kv b{font-size:14.5px}
+.need{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.need div{display:flex;gap:10px;align-items:flex-start;font-size:14px;padding:12px;border:1px solid var(--line);border-radius:9px;background:var(--surface)}
+.need b{display:block;font-size:14px}
+.need span{font-size:12.5px;color:var(--ink-3)}
+.steps{display:flex;flex-direction:column;gap:0}
+.step{display:grid;grid-template-columns:28px 1fr;gap:12px;padding-bottom:16px;position:relative}
+.step::before{content:"";position:absolute;left:13px;top:26px;bottom:0;width:2px;background:var(--line)}
+.step:last-child::before{display:none}
+.step .n{width:28px;height:28px;border-radius:50%;background:var(--surface-2);display:grid;place-items:center;font-weight:700;font-size:13px;color:var(--ink-2)}
+.step.done .n{background:var(--ok);color:#fff}
+.step b{display:block}
+
+/* ---------- container-driven responsive ---------- */
+@container app (max-width:1080px){
+  .layout{grid-template-columns:220px minmax(0,1fr)}
+  .layout .aside{grid-column:2;position:static}
+  .layout.two{grid-template-columns:minmax(0,1fr) 280px}
+  .layout.two .aside{grid-column:auto;position:sticky}
+  .doc{grid-template-columns:minmax(0,1fr) 270px}
+}
+@container app (max-width:760px){
+  .ph{padding:12px 16px}
+  .logo span,.saved{display:none}
+  .layout,.layout.two{grid-template-columns:minmax(0,1fr);padding:16px;gap:16px}
+  .layout .aside,.layout.two .aside{grid-column:auto;position:static}
+  .rail{position:static}
+  .rail .nav{display:none}
+  .is-section .rail{display:none}
+  .is-section .aside .why-card,.is-section .aside .priv-card{display:none}
+  details.ctx{display:block}
+  .doc{grid-template-columns:minmax(0,1fr)}
+  .fgrid{grid-template-columns:minmax(0,1fr)}
+  .secrow{grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;padding:14px 16px}
+  .secrow .due{grid-column:1;grid-row:2;text-align:left}
+  .secrow .chip{grid-column:2;grid-row:1}
+  .secrow .chev{display:none}
+  .kv{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .need{grid-template-columns:minmax(0,1fr)}
+  .hello h1{font-size:22px}
+  .sec-title h1{font-size:21px}
+  .drop .dsk{display:none}
+  .block-h{flex-wrap:wrap}
+  .block-h .hidem{display:none}
+  .submitbar .btn{width:100%}
+  .mail-b{padding:20px 18px}
+  .pf{padding:14px 16px 20px}
+}
+@container app (min-width:761px){.drop .mob{display:none}}
+details.ctx{background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+details.ctx summary{padding:12px 16px;font-weight:600;font-size:14px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center}
+details.ctx summary::after{content:"+";font-size:18px;color:var(--ink-3)}
+details.ctx[open] summary::after{content:"–"}
+details.ctx .in{padding:0 16px 16px;display:flex;flex-direction:column;gap:14px}
+</style>
+</head>
+<body>
+<div class="proto" role="region" aria-label="Prototype controls">
+  <div class="proto-in">
+    <b>Prototype</b>
+    <label class="sr" for="jump" hidden>Jump to screen</label>
+    <select id="jump" aria-label="Jump to screen">
+      <option value="email">1 · Invite email</option>
+      <option value="verify">2 · Verify with code</option>
+      <option value="welcome">3 · Welcome (first visit)</option>
+      <option value="home">4 · Checklist home</option>
+      <option value="sec:employment">5 · Section: Previous employment</option>
+      <option value="sec:bank">6 · Section: Bank details (needs changes)</option>
+      <option value="done">7 · All submitted</option>
+    </select>
+    <span class="grow"></span>
+    <span class="vt" role="group" aria-label="Preview width"><button id="vDesk" aria-pressed="true">Desktop</button><button id="vMob" aria-pressed="false">Mobile</button></span>
+    <button id="reset">Reset demo</button>
+  </div>
+</div>
+<div class="stage" id="stage"><div class="frame" id="app"></div></div>
+<div class="toast" id="toast" role="status" hidden></div>
+<input type="file" id="picker" accept=".pdf,.jpg,.jpeg,.png,.heic,image/*,application/pdf" hidden>
+
+<script>
+(function(){
+/* ---------------- sample data ---------------- */
+const TODAY=new Date(2026,9,15);
+const CO={name:"Tessera Systems",short:"T",city:"Pune"};
+const ME={first:"Sneha",name:"Sneha Iyer",email:"sneha.iyer@gmail.com",phone:"+91 ••••• ••418",role:"Product Analyst",team:"Supply Chain Analytics",manager:"Rohan Desai",doj:new Date(2026,10,2),office:"Pune · Baner office"};
+const HR={name:"Meera Kapoor",title:"HR Business Partner",email:"meera.kapoor@tesserasystems.in",phone:"+91 98220 41735",hours:"Mon–Fri, 10 am – 6 pm"};
+const TEAMS={
+  HR:{abbr:"HR",name:"HR team",does:"Checks your documents and sets up your employee record"},
+  PAY:{abbr:"₹",name:"Payroll",does:"Sets up your salary, PF and tax before your first payday"},
+  BGV:{abbr:"BG",name:"Background check partner",does:"Verifies identity, education and past employment, with your consent"},
+  MGR:{abbr:"RD",name:"Your manager",does:"Sees only your name, joining date and photo"}
+};
+const MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const DAYS=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const fd=d=>d.getDate()+" "+MON[d.getMonth()];
+const fdl=d=>DAYS[d.getDay()]+", "+d.getDate()+" "+MON[d.getMonth()]+" "+d.getFullYear();
+const daysTo=d=>Math.round((d-TODAY)/864e5);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+function seed(){
+  const D=(y,m,d)=>[y,m,d];
+  return {
+    visited:true,
+    sections:[
+      {id:"personal",name:"Personal details",due:D(2026,9,20),teams:["HR","MGR"],status:"submitted",
+       why:"We use these to create your employee record, your company email ID and your access card.",
+       fields:[
+         {id:"legal",label:"Full name as on PAN",v:"Sneha Ramesh Iyer"},
+         {id:"pref",label:"Name you'd like us to use",v:"Sneha",hint:"Used for your email ID and on Slack"},
+         {id:"dob",label:"Date of birth",v:"1997-03-14",type:"date"},
+         {id:"pemail",label:"Personal email",v:"sneha.iyer@gmail.com",type:"email"},
+         {id:"addr",label:"Current address",v:"Flat 302, Lotus Residency, Aundh, Pune 411007",full:true},
+         {id:"ec",label:"Emergency contact name",v:"Ramesh Iyer (father)"},
+         {id:"ecp",label:"Emergency contact phone",v:"+91 94220 18833"}
+       ],
+       docs:[
+         {id:"photo",name:"Passport-size photo",why:"Printed on your access card and shown on your profile.",teams:["HR","MGR"],st:{s:"verified",f:"sneha_photo.jpg",kb:412,on:"14 Oct"}},
+         {id:"addrp",name:"Address proof",why:"Needed only if your current address is different from your Aadhaar address.",teams:["HR","BGV"],st:{s:"verified",f:"rent_agreement_aundh.pdf",kb:1880,on:"14 Oct"}}
+       ]},
+      {id:"identity",name:"Identity proof",due:D(2026,9,20),teams:["HR","BGV","PAY"],status:"submitted",
+       why:"Your identity documents start the background check and are needed for PF and tax registration.",
+       fields:[],
+       docs:[
+         {id:"pan",name:"PAN card",why:"Required by law to deduct income tax from your salary.",teams:["HR","PAY","BGV"],st:{s:"verified",f:"PAN_Sneha.pdf",kb:640,on:"14 Oct"}},
+         {id:"aadhaar",name:"Aadhaar card",why:"Links your PF account (UAN) and confirms your identity for the background check.",teams:["HR","PAY","BGV"],st:{s:"review",f:"aadhaar_front_back.pdf",kb:1210,on:"13 Oct"}},
+         {id:"passport",name:"Passport",opt:true,why:"Only if you have one. Helps if you travel for work later.",teams:["HR"],st:{s:"empty"}}
+       ]},
+      {id:"bank",name:"Bank details",due:D(2026,9,26),teams:["HR","PAY"],status:"changes",
+       why:"Your salary is paid into this account. Payroll needs it verified before the 26 Oct payroll cutoff so you're paid on your first payday.",
+       fields:[
+         {id:"holder",label:"Account holder name",v:"Sneha Ramesh Iyer"},
+         {id:"acno",label:"Account number",v:"50100348812977",mono:true},
+         {id:"ifsc",label:"IFSC code",v:"HDFC0001263",mono:true,hint:"HDFC Bank · Aundh, Pune"}
+       ],
+       docs:[
+         {id:"cheque",name:"Cancelled cheque or bank statement",why:"Confirms the account is in your name, so your salary isn't sent to the wrong account.",teams:["HR","PAY"],
+          st:{s:"changes",f:"cheque_photo.jpg",kb:2310,on:"13 Oct",reason:"The account number on the cheque isn't readable. Upload a clearer photo, or the first page of a bank statement showing your name and account number."}}
+       ]},
+      {id:"employment",name:"Previous employment",due:D(2026,9,28),teams:["HR","PAY","BGV"],status:"progress",
+       why:"Payroll uses your last payslips and income to calculate tax correctly for this year. The background check partner confirms your work history.",
+       fields:[
+         {id:"lastco",label:"Most recent employer",v:"Northwind Retail Pvt. Ltd."},
+         {id:"lwd",label:"Last working day",v:"2026-10-30",type:"date"}
+       ],
+       docs:[
+         {id:"payslips",name:"Last 3 payslips",why:"Payroll uses these to work out your tax for the rest of the year.",teams:["HR","PAY"],multi:["July 2026","August 2026","September 2026"],
+          st:{parts:[{s:"uploaded",f:"Payslip_Jul_2026.pdf",kb:182,on:"Today"},{s:"uploaded",f:"Payslip_Aug_2026.pdf",kb:179,on:"Today",pw:true},{s:"empty"}]}},
+         {id:"offerprev",name:"Previous offer or appointment letter",why:"Confirms your role and start date with your last employer.",teams:["HR","BGV"],st:{s:"uploaded",f:"Northwind_offer_letter.pdf",kb:356,on:"Today"}},
+         {id:"relieve",name:"Relieving letter",why:"Shows you've been formally released by your last employer.",teams:["HR","BGV"],st:{s:"later",later:"2026-10-31"}},
+         {id:"exp",name:"Experience letter",opt:true,why:"Only if your last employer issues one separately from the relieving letter.",teams:["HR","BGV"],st:{s:"empty"}}
+       ]},
+      {id:"education",name:"Education",due:D(2026,9,28),teams:["HR","BGV"],status:"none",
+       why:"The background check partner verifies your highest qualification with your university.",
+       fields:[],
+       docs:[
+         {id:"degree",name:"Highest degree certificate",why:"Verified directly with your university by the background check partner.",teams:["HR","BGV"],st:{s:"empty"}},
+         {id:"marks",name:"Final year mark sheet",why:"Used if your degree certificate hasn't been issued yet.",teams:["HR","BGV"],st:{s:"empty"}},
+         {id:"twelfth",name:"Class 12 mark sheet",why:"Part of the standard education check for your role.",teams:["HR","BGV"],st:{s:"empty"}}
+       ]},
+      {id:"pftax",name:"PF and tax",due:D(2026,10,2),teams:["HR","PAY"],status:"none",
+       why:"Payroll moves your existing PF account to Tessera and makes sure tax isn't deducted twice this year.",
+       fields:[
+         {id:"uan",label:"UAN (PF account number)",v:"",mono:true,hint:"12 digits, shown on your payslip. Leave blank if this is your first job."}
+       ],
+       docs:[
+         {id:"f12b",name:"Form 12B",why:"Tells payroll how much you've already earned and paid in tax this financial year.",teams:["HR","PAY"],st:{s:"empty"}},
+         {id:"f11",name:"Form 11 (PF declaration)",why:"Required by EPFO to link your existing PF account instead of opening a new one.",teams:["HR","PAY"],st:{s:"empty"}}
+       ]}
+    ]
+  };
+}
+const KEY="tessera-joining-proto-v1";
+let S;try{S=JSON.parse(localStorage.getItem(KEY))||seed();}catch(e){S=seed();}
+if(!S||!S.sections)S=seed();
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}};
+const dueDate=s=>new Date(s.due[0],s.due[1],s.due[2]);
+
+/* ---------------- ui state ---------------- */
+const ui={screen:"home",sec:null,confirm:null,later:null,err:{},mobile:false,pick:null,secErr:null,otp:""};
+const app=document.getElementById("app");
+function toast(m){const t=document.getElementById("toast");t.textContent=m;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>t.hidden=true,3200);}
+
+/* ---------------- derived ---------------- */
+function parts(d){return d.multi?d.st.parts:[d.st];}
+function docDone(d){return parts(d).every(p=>p.s!=="empty"&&p.s!=="uploading"&&p.s!=="changes");}
+function docCount(sec){let have=0,total=0;sec.docs.forEach(d=>{if(d.opt&&parts(d).every(p=>p.s==="empty"))return;total++;if(parts(d).every(p=>["uploaded","review","verified"].includes(p.s)))have++;});return {have,total};}
+function secState(sec){
+  const ps=sec.docs.flatMap(parts);
+  if(ps.some(p=>p.s==="changes"))return "changes";
+  if(sec.status==="submitted"||sec.status==="changes"){
+    const req=sec.docs.filter(d=>!d.opt||parts(d).some(p=>p.s!=="empty")).flatMap(parts);
+    if(req.length&&req.every(p=>p.s==="verified"))return "verified";
+    return "submitted";
+  }
+  if(ps.some(p=>p.s!=="empty")||sec.fields.some(f=>f.v&&sec.status!=="none"))return "progress";
+  return "none";
+}
+const SECCHIP={none:["Not started","s-mute"],progress:["In progress","s-brand"],submitted:["Submitted · in review","s-info"],changes:["Needs changes","s-bad"],verified:["Verified","s-ok"]};
+const DOT={none:"",progress:"prog",submitted:"sub",changes:"bad",verified:"ok"};
+function overall(){let v=0,r=0,u=0,t=0;S.sections.forEach(sec=>sec.docs.forEach(d=>{if(d.opt&&parts(d).every(p=>p.s==="empty"))return;parts(d).forEach(p=>{t++;if(p.s==="verified")v++;else if(p.s==="review")r++;else if(p.s==="uploaded")u++;});}));return {v,r,u,t,done:v+r+u};}
+function chip(t,c){return `<span class="chip ${c}"><i></i>${esc(t)}</span>`;}
+const eye=`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>`;
+const lock=`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>`;
+const seenBy=ts=>ts.map(t=>t==="MGR"?"your manager (photo only)":TEAMS[t].name.replace("Background check partner","the background check partner").replace("HR team","HR")).join(", ").replace(/, ([^,]*)$/," and $1");
+
+/* ---------------- shell pieces ---------------- */
+function header(signed){
+  return `<header class="ph"><div class="logo"><div class="mark" aria-hidden="true">${CO.short}</div><strong>${CO.name}</strong>${signed?`<span>Joining checklist</span>`:""}</div>
+  ${signed?`<div class="who"><span class="saved">Changes save automatically</span><div class="av" aria-label="${esc(ME.name)}">SI</div></div>`:""}</header>`;
+}
+function footer(){return `<footer class="pf"><span>Your documents are encrypted and stored by ${CO.name} on Keka.</span><span>Powered by Keka</span></footer>`;}
+function hrCard(){
+  return `<section class="card pad hr" aria-label="Your HR contact">
+    <div class="eyebrow">Questions? Contact your HR</div>
+    <div class="hr-top"><div class="av" aria-hidden="true">MK</div><div><b>${HR.name}</b><span class="muted small">${HR.title}</span></div></div>
+    <div class="contact">
+      <div><span>${HR.email}</span><button class="copy" data-copy="${HR.email}">Copy</button></div>
+      <div><span>${HR.phone}</span><button class="copy" data-copy="${HR.phone}">Copy</button></div>
+    </div>
+    <p class="small muted">${HR.hours}. Please don't send documents by email or WhatsApp. Upload them here so they stay private.</p>
+  </section>`;
+}
+function privacy(teamsList,title){
+  const all=["HR","PAY","BGV","MGR"];const seen=teamsList||all;const not=all.filter(t=>!seen.includes(t));
+  return `<section class="card pad priv priv-card" aria-label="Who can see your information">
+    <div class="eyebrow">${title||"Who can see your information"}</div>
+    <div class="teams">${seen.map(t=>`<div class="team"><div class="tb">${TEAMS[t].abbr}</div><b>${TEAMS[t].name}</b><span>${TEAMS[t].does}</span></div>`).join("")}</div>
+    ${not.length?`<p class="notseen">Not visible to ${not.map(t=>TEAMS[t].name.toLowerCase().replace("your manager","your manager")).join(" or ")}.</p>`:`<p class="notseen">IT only receives your name and joining date to set up your laptop and email.</p>`}
+  </section>`;
+}
+function rail(active){
+  const o=overall();
+  return `<aside class="rail" aria-label="Progress and sections">
+    <section class="card pad prog">
+      <div class="prog-top"><b class="num">${o.done}<span class="muted" style="font-size:15px;font-weight:500"> / ${o.t}</span></b><span class="small muted">documents</span></div>
+      <div class="track" aria-hidden="true"><i style="width:${o.v/o.t*100}%;background:var(--ok)"></i><i style="width:${o.r/o.t*100}%;background:var(--info)"></i><i style="width:${o.u/o.t*100}%;background:var(--brand)"></i></div>
+      <div class="legend"><span><em style="background:var(--ok)"></em>${o.v} verified</span><span><em style="background:var(--info)"></em>${o.r} in review</span><span><em style="background:var(--brand)"></em>${o.u} not submitted</span></div>
+    </section>
+    <nav class="nav" aria-label="Sections">
+      <button data-go="home" aria-current="${active==="home"}"><span class="dot" style="border:0;background:none;color:var(--ink-2)">⌂</span><span class="name">Overview</span></button>
+      ${S.sections.map(sec=>{const st=secState(sec);return `<button data-go="sec:${sec.id}" aria-current="${active===sec.id}"><span class="dot ${DOT[st]}">${st==="verified"?"✓":st==="changes"?"!":""}</span><span class="name">${sec.name}</span></button>`;}).join("")}
+    </nav>
+  </aside>`;
+}
+
+/* ---------------- screens ---------------- */
+function scrEmail(){
+  return `<div class="center" style="padding-top:32px">
+  <article class="card mail" aria-label="Invite email">
+    <div class="mail-h"><span class="muted">From: ${HR.name} via ${CO.name} &lt;joining@tesserasystems.in&gt;</span><span class="muted">To: ${ME.email}</span><b>Your joining checklist for ${fdl(ME.doj)}</b></div>
+    <div class="mail-b">
+      <div class="mail-brand"><div class="mark">${CO.short}</div><strong>${CO.name}</strong></div>
+      <p>Hi ${ME.first},</p>
+      <p>We're looking forward to having you join the ${ME.team} team as a ${ME.role} on <b>${fdl(ME.doj)}</b>.</p>
+      <p>Before you join, we need a few documents from you, like your PAN, bank details and last payslips. Please upload them through your secure joining checklist instead of email or WhatsApp. It takes about 25 minutes, and you can save and come back anytime.</p>
+      <div><button class="btn primary" data-go="verify">Open my joining checklist</button></div>
+      <p class="small muted">This link is only for you and expires on 22 Oct. If it expires, you can request a new one from the page.</p>
+      <p>Thanks,<br><b>${HR.name}</b><br><span class="muted">${HR.title}, ${CO.name}<br>${HR.email} · ${HR.phone}</span></p>
+    </div>
+  </article></div>`;
+}
+function scrVerify(){
+  return `<div class="center"><form class="entry" id="otpForm" novalidate>
+    <div class="logo"><div class="mark">${CO.short}</div><strong>${CO.name}</strong></div>
+    <div><h1 style="font-size:24px">Confirm it's you</h1><p class="muted" style="margin-top:6px">We sent a 6-digit code to <b>${ME.email}</b> and ${ME.phone}. It's valid for 10 minutes.</p></div>
+    <div class="field"><label for="otp">Verification code</label><input class="input otp num" id="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" value="${esc(ui.otp)}" aria-describedby="otpErr"></div>
+    <p class="err" id="otpErr">${esc(ui.err.otp||"")}</p>
+    <button class="btn primary" type="submit">Continue</button>
+    <div class="small muted" style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><button class="btn link small" type="button" id="resend">Send a new code</button><span>Not ${ME.first}? Contact ${HR.name.split(" ")[0]} at ${HR.email}</span></div>
+    <p class="small" style="color:var(--ink-3)">Prototype: enter any 6 digits.</p>
+  </form></div>`;
+}
+function scrWelcome(){
+  const secs=S.sections;const n=secs.reduce((a,s)=>a+s.docs.filter(d=>!d.opt).length,0);
+  return header(true)+`<div class="layout two"><div class="col">
+    <div class="hello"><div class="eyebrow">Welcome to ${CO.name}</div><h1 style="font-size:28px">Hi ${ME.first}, let's get you ready for day one</h1><p class="muted">You've accepted your offer. The next step is to share a few documents so we can set up your salary, background check and access before you join.</p></div>
+    <div class="kv"><div><span>Role</span><b>${ME.role}</b></div><div><span>Joining date</span><b>${fd(ME.doj)} 2026</b></div><div><span>Reporting manager</span><b>${ME.manager}</b></div><div><span>Office</span><b>${ME.office}</b></div></div>
+    <section class="col" style="gap:12px"><h2 style="font-size:17px">What we'll need</h2>
+      <div class="need">${secs.map(s=>`<div><span class="chip s-mute" style="margin-top:1px">${s.docs.filter(d=>!d.opt).length}</span><div><b>${s.name}</b><span>Due ${fd(dueDate(s))}</span></div></div>`).join("")}</div>
+      <p class="small muted">${n} documents in total, about 25 minutes. Each section has its own due date, because different teams need them at different times. You don't have to finish in one go: your progress saves as you work.</p>
+    </section>
+    <div><button class="btn primary" data-go="home" id="startBtn">Go to my checklist</button></div>
+  </div>
+  <div class="aside">${hrCard()}${privacy()}</div></div>`+footer();
+}
+function scrHome(){
+  const o=overall();const attn=S.sections.filter(s=>secState(s)==="changes");
+  const allSub=S.sections.every(s=>["submitted","verified"].includes(secState(s)));
+  const next=S.sections.filter(s=>["none","progress","changes"].includes(secState(s))).sort((a,b)=>dueDate(a)-dueDate(b))[0];
+  return header(true)+`<div class="layout">${rail("home")}
+  <div class="col">
+    <div class="hello"><h1>Welcome back, ${ME.first}</h1><p class="muted">You join on <b>${fdl(ME.doj)}</b>, in ${daysTo(ME.doj)} days.${next?` Next due: <b>${next.name}</b> by ${fd(dueDate(next))}.`:""}</p></div>
+    ${attn.map(s=>{const d=s.docs.find(d=>parts(d).some(p=>p.s==="changes"));return `<div class="alert" role="alert"><div class="ic">!</div><div style="flex:1;min-width:0"><b>${HR.name.split(" ")[0]} asked you to change one document in ${s.name}</b><p class="small" style="margin-top:2px">${esc(d.name)}: ${esc(parts(d).find(p=>p.s==="changes").reason)}</p></div><button class="btn sm" data-go="sec:${s.id}">Fix it</button></div>`;}).join("")}
+    ${allSub?`<div class="alert ok"><div class="ic">✓</div><div><b>Everything is submitted</b><p class="small">HR is reviewing your documents. We'll email you if anything needs a change.</p></div></div>`:""}
+    <section class="card" aria-label="Sections">
+      <div class="block-h"><h2>Your checklist</h2><span class="small muted num">${S.sections.filter(s=>["submitted","verified"].includes(secState(s))).length} of ${S.sections.length} sections submitted</span></div>
+      <div class="seclist">${S.sections.map(s=>{const st=secState(s);const c=docCount(s);const dd=daysTo(dueDate(s));const soon=dd<=5&&["none","progress","changes"].includes(st);
+        return `<button class="secrow" data-go="sec:${s.id}"><div><h3>${s.name}</h3><div class="sub num">${c.have} of ${c.total} documents${s.fields.length?" · "+s.fields.length+" details":""} · Seen by ${seenBy(s.teams)}</div></div>
+        <div class="due num ${soon?"soon":""}">${["submitted","verified"].includes(st)?"Submitted":`Due ${fd(dueDate(s))}${soon?` · ${dd} days`:""}`}</div>
+        ${chip(...SECCHIP[st])}<span class="chev" aria-hidden="true">›</span></button>`;}).join("")}</div>
+    </section>
+  </div>
+  <div class="aside">${hrCard()}${privacy()}</div></div>`+footer();
+}
+
+function docSlot(sec,d,p,idx){
+  const key=d.id+(idx!=null?":"+idx:"");const lockd=p.s==="verified";
+  const conf=ui.confirm===key;const err=ui.err[key];
+  const fileBox=(extra)=>`<div class="file"><div class="file-top"><div class="ficon">${(p.f||"").split(".").pop().toUpperCase().slice(0,4)}</div><div class="fname"><b title="${esc(p.f)}">${esc(p.f)}</b><span class="num">${p.kb>=1000?(p.kb/1024).toFixed(1)+" MB":p.kb+" KB"} · ${p.s==="uploaded"?"Uploaded "+(p.on==="Today"?"today":p.on):p.s==="review"?"Submitted "+p.on:p.s==="verified"?"Verified by HR on "+p.on:"Uploaded "+p.on}</span></div></div>${extra||""}</div>`;
+  if(p.s==="uploading")return `<div class="file"><div class="file-top"><div class="ficon">…</div><div class="fname"><b>${esc(p.f)}</b><span>Uploading ${p.pct||0}%</span></div></div><div class="bar"><i style="width:${p.pct||0}%"></i></div></div>`;
+  if(conf)return fileBox(`<div class="confirm" role="alert"><span>Delete <b>${esc(p.f)}</b>? You can upload a new file afterwards.</span><div class="factions"><button class="btn danger sm" data-del="${key}">Delete file</button><button class="btn sm" data-keep>Keep it</button></div></div>`);
+  if(p.s==="uploaded"||p.s==="review"){
+    return fileBox(`${d.id==="payslips"&&p.pw?`<div class="note warn small">This PDF is password-protected. <label for="pw-${key}">Password so HR can open it</label><input class="input" id="pw-${key}" style="margin-top:6px;min-height:36px" placeholder="Usually your PAN or date of birth" value="${esc(p.pwv||"")}" data-pw="${key}"></div>`:""}
+      <div class="factions"><button class="btn link" data-view="${key}">View</button><button class="btn link" data-up="${key}">Replace</button><button class="btn link" style="color:var(--bad)" data-ask="${key}">Delete</button></div>
+      ${p.s==="review"?`<span class="small muted">If you replace it, ${HR.name.split(" ")[0]} is notified to review the new file.</span>`:""}`);
+  }
+  if(lockd)return fileBox(`<div class="small muted" style="display:flex;gap:6px;align-items:center">${lock} Verified files are locked. Contact ${HR.name.split(" ")[0]} if something has changed.</div>`);
+  if(p.s==="changes")return `<div class="note bad"><b>Needs a change.</b> ${esc(p.reason)}</div>${fileBox(`<div class="factions"><button class="btn primary sm" data-up="${key}">Upload a new file</button><button class="btn link" style="color:var(--bad)" data-ask="${key}">Delete</button></div>`)}`;
+  if(p.s==="later")return `<div class="note info small"><b>Adding later.</b> Expected by ${fd(new Date(p.later))}. HR can see this date, so they won't chase you before then.</div><div class="factions"><button class="btn primary sm" data-up="${key}">Upload now</button><button class="btn link" data-unlater="${key}">Change date</button></div>`;
+  // empty
+  if(ui.later===key)return `<div class="later"><div class="field"><label for="ld-${key}">When will you have it?</label><input class="input" type="date" id="ld-${key}" min="2026-10-15" value="2026-10-31"></div><button class="btn primary sm" data-setlater="${key}">Save date</button><button class="btn sm" data-cancellater>Cancel</button></div>`;
+  return `<div class="drop" data-drop="${key}"><div class="row"><button class="btn sm primary" data-up="${key}"><span class="dsk">Choose file</span><span class="mob">Upload or take photo</span></button><span class="small muted dsk">or drag it here</span></div><span class="fmt">PDF, JPG, PNG or HEIC · up to 5 MB</span>${err?`<span class="err">${esc(err)}</span>`:""}</div>
+  ${!d.multi&&!d.opt?`<button class="btn link small" style="align-self:flex-start" data-later="${key}">I don't have this yet</button>`:""}`;
+}
+function scrSection(){
+  const sec=S.sections.find(s=>s.id===ui.sec);const st=secState(sec);
+  const subd=["submitted","verified"].includes(st);
+  const docsHtml=sec.docs.map(d=>{
+    const ps=parts(d);const all=ps.every(p=>p.s==="verified")?["Verified","s-ok"]:ps.some(p=>p.s==="changes")?["Needs changes","s-bad"]:ps.some(p=>p.s==="review")?["In review","s-info"]:ps.every(p=>p.s==="uploaded"||p.s==="review"||p.s==="verified")?["Uploaded","s-brand"]:ps.some(p=>p.s==="later")?["Adding later","s-mute"]:null;
+    return `<div class="doc" id="doc-${d.id}"><div><div class="doc-name"><b>${d.name}</b>${d.opt?`<span class="tag">Optional</span>`:""}${d.multi?`<span class="tag num">${ps.filter(p=>p.s!=="empty").length} of ${ps.length}</span>`:""}${all?chip(...all):""}</div>
+      <p class="why">${d.why}</p><p class="seen">${eye}Seen by ${seenBy(d.teams)}</p></div>
+      <div class="slot">${d.multi?`<div class="multi">${d.multi.map((m,i)=>`<div class="lbl">${m}</div>${docSlot(sec,d,ps[i],i)}`).join("")}</div>`:docSlot(sec,d,ps[0],null)}</div></div>`;}).join("");
+  const fieldsHtml=sec.fields.length?`<section class="card" aria-label="Details"><div class="block-h"><h2>Your details</h2>${subd?`<span class="small muted">Submitted. Contact HR to change these.</span>`:""}</div><div class="pad"><div class="fgrid">${sec.fields.map(f=>`<div class="field ${f.full?"full":""}"><label for="f-${f.id}">${f.label}</label><input class="input ${f.mono?"mono":""}" id="f-${f.id}" data-field="${f.id}" type="${f.type||"text"}" value="${esc(f.v)}" ${subd?"readonly":""}>${f.hint?`<span class="hint" id="h-${f.id}">${f.hint}</span>`:""}</div>`).join("")}</div></div></section>`:"";
+  const c=docCount(sec);
+  const ctx=`<details class="ctx"><summary>Why we need this and who can see it</summary><div class="in"><p class="small">${sec.why}</p>${privacy(sec.teams,"Who can see this section").replace('class="card pad priv priv-card"','class="priv"')}</div></details>`;
+  return header(true)+`<div class="layout is-section">${rail(sec.id)}
+  <div class="col">
+    <div><div class="crumb"><button data-go="home">‹ Checklist</button><span>/</span><span>${sec.name}</span></div>
+    <div class="sec-title" style="margin-top:8px"><h1>${sec.name}</h1>${chip(...SECCHIP[st])}</div>
+    <div class="sec-meta num"><span>Due ${fdl(dueDate(sec))}</span><span>${c.have} of ${c.total} documents</span></div></div>
+    ${ctx}
+    ${fieldsHtml}
+    <section class="card" aria-label="Documents"><div class="block-h"><h2>Documents</h2><span class="small muted hidem">Upload a clear scan or photo of each one</span></div>
+      <div class="docs">${docsHtml}</div>
+      <div class="submitbar">${subd?`<span class="small muted">Submitted. ${HR.name.split(" ")[0]} reviews documents within 2 working days.</span><button class="btn" data-go="home">Back to checklist</button>`:
+      `<div style="min-width:0"><span class="small muted">${st==="changes"?"Fix the highlighted document, then resubmit.":"You can submit now and add documents marked \"later\" afterwards."}</span>${ui.secErr?`<p class="err" role="alert">${esc(ui.secErr)}</p>`:""}</div><button class="btn primary" id="submitSec">${st==="changes"?"Resubmit section":"Submit section"}</button>`}</div>
+    </section>
+  </div>
+  <div class="aside"><section class="card pad why-card"><div class="eyebrow">Why we need this</div><p class="small" style="margin-top:8px">${sec.why}</p></section>${privacy(sec.teams,"Who can see this section")}${hrCard()}</div></div>`+footer();
+}
+function scrDone(){
+  return header(true)+`<div class="layout two"><div class="col">
+    <div class="hello"><div class="eyebrow">All sections submitted</div><h1 style="font-size:28px">You're all set for now, ${ME.first}</h1><p class="muted">Thanks for sending everything through the checklist. Here's what happens before ${fdl(ME.doj)}.</p></div>
+    <section class="card pad"><div class="steps">
+      <div class="step done"><div class="n">✓</div><div><b>You submitted your documents</b><span class="small muted">You can still replace anything until it's verified.</span></div></div>
+      <div class="step"><div class="n">2</div><div><b>HR reviews them</b><span class="small muted">Within 2 working days. We'll email you if something needs a change.</span></div></div>
+      <div class="step"><div class="n">3</div><div><b>Background check</b><span class="small muted">Our background check partner may call your previous employer. This usually takes 5–7 working days.</span></div></div>
+      <div class="step"><div class="n">4</div><div><b>Day one details</b><span class="small muted">Around ${fd(new Date(2026,9,28))}, you'll get your reporting time, office address and who to ask for at reception.</span></div></div>
+    </div></section>
+    <div><button class="btn" data-go="home">Back to checklist</button></div>
+  </div><div class="aside">${hrCard()}</div></div>`+footer();
+}
+
+/* ---------------- render + events ---------------- */
+function render(){
+  const sc=ui.screen;
+  app.innerHTML=sc==="email"?scrEmail():sc==="verify"?scrVerify():sc==="welcome"?scrWelcome():sc==="done"?scrDone():sc==="sec"?scrSection():scrHome();
+  document.getElementById("jump").value=sc==="sec"?("sec:"+ui.sec):sc;
+  if(![...document.getElementById("jump").options].some(o=>o.value===document.getElementById("jump").value))document.getElementById("jump").selectedIndex=-1;
+  bind();
+}
+function go(t){
+  ui.confirm=null;ui.later=null;ui.secErr=null;ui.err={};
+  if(t.startsWith("sec:")){ui.screen="sec";ui.sec=t.slice(4);}else ui.screen=t;
+  render();document.getElementById("stage").scrollIntoView({block:"start"});window.scrollTo(0,0);
+}
+function findSlot(key){
+  const [did,idx]=key.split(":");
+  for(const sec of S.sections){const d=sec.docs.find(x=>x.id===did);if(d){const p=d.multi?d.st.parts[Number(idx)]:d.st;return {sec,d,p,set:(np)=>{if(d.multi)d.st.parts[Number(idx)]=np;else d.st=np;}};}}
+}
+function startUpload(key,file){
+  const t=findSlot(key);if(!t)return;
+  const ext=(file.name.split(".").pop()||"").toLowerCase();
+  if(!["pdf","jpg","jpeg","png","heic"].includes(ext)){ui.err[key]=`${file.name} is a .${ext} file. Upload a PDF, JPG, PNG or HEIC instead.`;render();return;}
+  if(file.size>5*1024*1024){ui.err[key]=`This file is ${(file.size/1048576).toFixed(1)} MB. Upload a file under 5 MB, or take a photo of the page.`;render();return;}
+  delete ui.err[key];
+  const wasReview=t.p.s==="review";
+  const np={s:"uploading",f:file.name,kb:Math.max(1,Math.round(file.size/1024)),pct:0};t.set(np);
+  if(t.sec.status==="submitted"&&!wasReview)t.sec.status="submitted";
+  render();
+  const tick=()=>{np.pct=Math.min(100,np.pct+20);if(np.pct<100){render();setTimeout(tick,160);}else{
+    const sub=["submitted","changes"].includes(t.sec.status);
+    t.set({s:sub?"review":"uploaded",f:np.f,kb:np.kb,on:sub?fd(TODAY):"Today",pw:t.d.id==="payslips"&&/pdf$/i.test(np.f)});
+    if(t.sec.status==="changes"&&!t.sec.docs.flatMap(parts).some(p=>p.s==="changes"))t.sec.status="changes";
+    save();render();
+    toast(sub?`${t.d.name} uploaded. ${HR.name.split(" ")[0]} has been notified to review it.`:`${t.d.name} uploaded. It goes to HR when you submit this section.`);
+  }};setTimeout(tick,160);
+}
+function bind(){
+  app.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>{if(b.id==="startBtn"){S.visited=true;save();}go(b.dataset.go);});
+  app.querySelectorAll("[data-copy]").forEach(b=>b.onclick=()=>{const v=b.dataset.copy;const sel=()=>{try{const r=document.createRange();r.selectNodeContents(b.previousElementSibling);const s=getSelection();s.removeAllRanges();s.addRange(r);toast("Selected. Copy it with your keyboard.");}catch(e){}};
+    try{navigator.clipboard.writeText(v).then(()=>toast("Copied "+v),sel);}catch(e){sel();}});
+  const otpF=document.getElementById("otpForm");
+  if(otpF){const o=document.getElementById("otp");o.focus();o.oninput=()=>{o.value=o.value.replace(/\D/g,"").slice(0,6);ui.otp=o.value;};
+    otpF.onsubmit=e=>{e.preventDefault();if(!/^\d{6}$/.test(o.value)){ui.err.otp="Enter the 6-digit code from your email or SMS.";render();return;}ui.otp="";go(S.visited===false?"welcome":"welcome");};
+    document.getElementById("resend").onclick=()=>toast("New code sent to "+ME.email);}
+  app.querySelectorAll("[data-up]").forEach(b=>b.onclick=()=>{ui.pick=b.dataset.up;const pk=document.getElementById("picker");pk.value="";pk.click();});
+  app.querySelectorAll("[data-view]").forEach(b=>b.onclick=()=>toast("Opens a preview of the file (not part of this prototype)."));
+  app.querySelectorAll("[data-ask]").forEach(b=>b.onclick=()=>{ui.confirm=b.dataset.ask;render();});
+  app.querySelectorAll("[data-keep]").forEach(b=>b.onclick=()=>{ui.confirm=null;render();});
+  app.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{const t=findSlot(b.dataset.del);const n=t.p.f;t.set({s:"empty"});ui.confirm=null;save();render();toast(`${n} deleted.`);});
+  app.querySelectorAll("[data-later]").forEach(b=>b.onclick=()=>{ui.later=b.dataset.later;render();});
+  app.querySelectorAll("[data-cancellater]").forEach(b=>b.onclick=()=>{ui.later=null;render();});
+  app.querySelectorAll("[data-setlater]").forEach(b=>b.onclick=()=>{const k=b.dataset.setlater;const v=document.getElementById("ld-"+k).value;if(!v)return;findSlot(k).set({s:"later",later:v});ui.later=null;save();render();toast("Saved. HR will expect it by "+fd(new Date(v))+".");});
+  app.querySelectorAll("[data-unlater]").forEach(b=>b.onclick=()=>{const k=b.dataset.unlater;findSlot(k).set({s:"empty"});ui.later=k;render();});
+  app.querySelectorAll("[data-pw]").forEach(i=>i.oninput=()=>{const t=findSlot(i.dataset.pw);t.p.pwv=i.value;save();});
+  app.querySelectorAll("[data-field]").forEach(i=>i.oninput=()=>{const sec=S.sections.find(s=>s.id===ui.sec);const f=sec.fields.find(f=>f.id===i.dataset.field);f.v=i.value;if(sec.status==="none")sec.status="progress";save();
+    if(f.id==="ifsc"){const h=document.getElementById("h-ifsc");const ok=/^[A-Z]{4}0[A-Z0-9]{6}$/i.test(i.value.trim());h.textContent=ok?(i.value.toUpperCase().startsWith("HDFC")?"HDFC Bank · Aundh, Pune":"Bank found · branch details filled automatically"):"11 characters, like HDFC0001263. It's printed on your cheque book.";h.style.color=ok?"var(--ok)":"";}});
+  app.querySelectorAll("[data-drop]").forEach(z=>{
+    z.ondragover=e=>{e.preventDefault();z.classList.add("over");};z.ondragleave=()=>z.classList.remove("over");
+    z.ondrop=e=>{e.preventDefault();z.classList.remove("over");const f=e.dataTransfer.files[0];if(f)startUpload(z.dataset.drop,f);};});
+  const sb=document.getElementById("submitSec");
+  if(sb)sb.onclick=()=>{const sec=S.sections.find(s=>s.id===ui.sec);
+    const missing=sec.docs.filter(d=>!d.opt&&parts(d).some(p=>p.s==="empty"));
+    const changes=sec.docs.filter(d=>parts(d).some(p=>p.s==="changes"));
+    const emptyF=sec.fields.filter(f=>!f.v&&f.id!=="uan");
+    if(changes.length){ui.secErr=`Upload a new file for ${changes.map(d=>d.name).join(", ")} first.`;render();return;}
+    if(missing.length||emptyF.length){ui.secErr=`Still needed: ${[...emptyF.map(f=>f.label),...missing.map(d=>d.name)].join(", ")}. Upload them, or choose "I don't have this yet".`;render();
+      const first=missing[0];if(first){const el=document.getElementById("doc-"+first.id);if(el)el.scrollIntoView({block:"center",behavior:"smooth"});}return;}
+    sec.docs.forEach(d=>{if(d.multi)d.st.parts=d.st.parts.map(p=>p.s==="uploaded"?{...p,s:"review",on:fd(TODAY)}:p);else if(d.st.s==="uploaded")d.st={...d.st,s:"review",on:fd(TODAY)};});
+    sec.status="submitted";save();ui.secErr=null;
+    const allSub=S.sections.every(s=>["submitted","verified"].includes(secState(s)));
+    toast(`${sec.name} submitted. ${HR.name.split(" ")[0]} will review it within 2 working days.`);
+    go(allSub?"done":"home");};
+}
+document.getElementById("picker").onchange=e=>{const f=e.target.files[0];if(f&&ui.pick)startUpload(ui.pick,f);};
+document.getElementById("jump").onchange=e=>go(e.target.value);
+document.getElementById("reset").onclick=()=>{S=seed();save();go("home");toast("Demo data reset.");};
+const setView=m=>{ui.mobile=m;document.getElementById("stage").classList.toggle("mobile",m);document.getElementById("vDesk").setAttribute("aria-pressed",!m);document.getElementById("vMob").setAttribute("aria-pressed",m);};
+document.getElementById("vDesk").onclick=()=>setView(false);
+document.getElementById("vMob").onclick=()=>setView(true);
+const h=(location.hash||"").slice(1);if(["email","verify","welcome","home","done"].includes(h))ui.screen=h;
+render();
+})();
+</script>
+</body>
+</html>

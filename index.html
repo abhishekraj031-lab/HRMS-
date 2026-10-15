@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HRMS Prototypes</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;600;700&display=swap">
+<style>
+:root{--bg:#F3F5F8;--card:#fff;--ink:#15202B;--ink2:#56636F;--line:#DCE2E9;--accent:#1E4E79}
+@media (prefers-color-scheme:dark){:root{color-scheme:dark;--bg:#0F1318;--card:#161C23;--ink:#E6EBF0;--ink2:#A6B1BC;--line:#29323C;--accent:#7FB0DF}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Albert Sans",system-ui,sans-serif;padding:48px 16px}
+main{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+h1{margin:0;font-size:28px;letter-spacing:-.02em}
+p{margin:0;color:var(--ink2)}
+a.card{display:block;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;color:inherit;text-decoration:none}
+a.card:hover{border-color:var(--accent)}
+a.card b{display:block;font-size:18px;margin-bottom:4px;color:var(--accent)}
+</style>
+</head>
+<body>
+<main>
+  <h1>HRMS prototypes</h1>
+  <p>Clickable prototypes by Abhishek. Sample data only; anything you change is saved in your own browser.</p>
+  <a class="card" href="joining-checklist/"><b>Joining checklist</b><p>Candidate pre-onboarding: invite, OTP sign-in, section-wise document upload with review states. Desktop first, responsive to mobile.</p></a>
+  <a class="card" href="hrms-app/"><b>Kaveri People (employee app)</b><p>Mobile app: punch in/out, leave balance, apply leave, leave calendar, salary slips with PDF download, profile.</p></a>
+</main>
+</body>
+</html>
